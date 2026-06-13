@@ -25,8 +25,33 @@ Responsibilities:
 - Conduct candidate screening and structure behavioral interviewing.
 - Administer payroll, performance management reviews, and employee relations programs.
 - Experience working with ATS (Applicant Tracking Systems) to track candidate workflows.
-- Assist in developing hr policies, employee handbook, and benefits administration.`
+- Assist in developing hr policies, employee handbook, and benefits administration.`,
+
+    finance: `We are looking for a Financial Analyst to join our corporate finance team. The candidate will perform financial modeling, analysis, and forecasting.
+
+Requirements:
+- Strong experience with corporate finance, general ledger, QuickBooks, and Excel.
+- Ability to conduct cash flow forecasting, budget analysis, and ledger reconciliation.
+- Prepare detailed financial reporting, cost reduction plans, and risk assessments.
+- Bachelor's degree in Finance, Accounting, or Economics.`,
+
+    marketing: `We are seeking a Digital Marketing & Sales Specialist to drive lead generation and brand awareness.
+
+Key Responsibilities:
+- Execute digital marketing campaigns across social media, email channels, and SEO.
+- Optimize search engine optimization (SEO) and manage Google Ads budgets.
+- Manage the sales pipeline, customer relationships via CRM (e.g., Salesforce).
+- Experience in content creation, copywriting, and growth hacking metrics.`,
+
+    product: `We are looking for a Product Manager to guide the lifecycle of our software products from inception to launch.
+
+Qualifications:
+- Experience writing business requirements, user stories, and managing product roadmaps.
+- Proficient with Agile/Scrum methodologies, JIRA, and Confluence.
+- Strong stakeholder management and feature prioritization skills.
+- Define product metrics, KPIs, and perform user testing and UX research.`
 };
+
 
 // DOM Elements
 const apiStatusEl = document.getElementById('apiStatus');

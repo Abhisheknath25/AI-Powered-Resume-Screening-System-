@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Resume Screening System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glass-bg"></div>
+    <div class="sparkles"></div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="bx bxs-brain logo-icon"></i>
+                <div class="logo-text">
+                    <h1>RESUMIND</h1>
+                    <span>AI Resume Screener & Analyzer</span>
+                </div>
+            </div>
+            <div class="api-status" id="apiStatus">
+                <span class="status-dot pulsing"></span>
+                <span class="status-text">Connecting to TF Model...</span>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT -->
+        <main class="app-layout">
+            
+            <!-- LEFT PANEL: INPUT -->
+            <section class="input-panel glass-panel">
+                <div class="panel-header">
+                    <i class="bx bx-sliders-alt"></i>
+                    <h2>Screening Parameters</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="jdInput">Job Description</label>
+                    <div class="textarea-wrapper">
+                        <textarea id="jdInput" placeholder="Paste the job description or requirements here..."></textarea>
+                        <div class="jd-templates">
+                            <span class="template-label">Try a Template:</span>
+                            <button class="template-btn" data-type="datascience">Data Scientist</button>
+                            <button class="template-btn" data-type="software">Web Engineer</button>
+                            <button class="template-btn" data-type="hr">HR Manager</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Resume File</label>
+                    <div class="drag-drop-zone" id="dropZone">
+                        <input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display: none;">
+                        <i class="bx bx-cloud-upload upload-icon"></i>
+                        <h3>Drag & Drop Resume</h3>
+                        <p>Supports PDF, DOCX, and TXT (Max 10MB)</p>
+                        <button class="select-file-btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+                        <div class="selected-file-indicator" id="fileIndicator" style="display: none;">
+                            <i class="bx bx-file"></i>
+                            <span id="fileName">resume.pdf</span>
+                            <i class="bx bx-x remove-file-btn" id="removeFile"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="screen-btn" id="screenBtn" disabled>
+                    <span class="btn-text">Screen Resume</span>
+                    <i class="bx bx-right-arrow-alt btn-icon"></i>
+                </button>
+            </section>
+
+            <!-- RIGHT PANEL: DASHBOARD / RESULTS -->
+            <section class="dashboard-panel glass-panel">
+                
+                <!-- PLACEHOLDER STATE -->
+                <div class="dashboard-state" id="statePlaceholder">
+                    <div class="placeholder-content">
+                        <div class="pulse-container">
+                            <i class="bx bx-analyse placeholder-icon"></i>
+                        </div>
+                        <h2>Ready for Analysis</h2>
+                        <p>Fill out the job description and upload a resume on the left to activate the AI screening dashboard.</p>
+                    </div>
+                </div>
+
+                <!-- LOADING STATE -->
+                <div class="dashboard-state" id="stateLoading" style="display: none;">
+                    <div class="loader-content">
+                        <div class="spinner"></div>
+                        <h2 id="loaderTitle">Reading File...</h2>
+                        <p id="loaderSubtitle">Extracting text and setting up NLP pipeline</p>
+                        <div class="progress-bar-wrapper">
+                            <div class="progress-bar" id="loaderProgress"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANALYSIS RESULTS STATE -->
+                <div class="dashboard-state results-container" id="stateResults" style="display: none;">
+                    
+                    <!-- SUMMARY ROW -->
+                    <div class="results-summary">
+                        <!-- Score Wheel -->
+                        <div class="score-card glass-subpanel">
+                            <h3>Match Rating</h3>
+                            <div class="score-circle-wrapper">
+                                <svg class="score-ring" width="160" height="160">
+                                    <defs>
+                                        <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="hsl(263, 85%, 65%)"></stop>
+                                            <stop offset="100%" stop-color="hsl(180, 100%, 45%)"></stop>
+                                        </linearGradient>
+                                    </defs>
+                                    <circle class="score-ring-bg" cx="80" cy="80" r="70" stroke-width="12"></circle>
+                                    <circle class="score-ring-progress" id="scoreRing" cx="80" cy="80" r="70" stroke-width="12" stroke-dasharray="440" stroke-dashoffset="440" stroke="url(#scoreGradient)"></circle>
+                                </svg>
+                                <div class="score-number" id="scoreNumber">0%</div>
+                            </div>
+                            <span class="match-badge" id="matchBadge">Calculating...</span>
+                        </div>
+
+                        <!-- TensorFlow Classification Model Card -->
+                        <div class="ai-role-card glass-subpanel">
+                            <h3>TF Model Classification</h3>
+                            <div class="role-prediction">
+                                <i class="bx bx-target-lock role-icon"></i>
+                                <div class="role-details">
+                                    <span class="label">Identified Role Path</span>
+                                    <h4 id="predictedRole">Data Science & AI</h4>
+                                    <div class="confidence-gauge">
+                                        <div class="gauge-bar" id="roleConfidenceBar"></div>
+                                        <span class="confidence-value" id="predictedConfidence">Confidence: 0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="probabilities-list" id="probabilitiesList">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SCORE BREAKDOWN & CONTACTS -->
+                    <div class="results-grid-2">
+                        <!-- Match Breakdown Card -->
+                        <div class="details-card glass-subpanel">
+                            <h3>Match Indicators</h3>
+                            <div class="indicator-group">
+                                <div class="indicator-header">
+                                    <span>Core Skills Alignment</span>
+                                    <span id="skillMatchPercent">0%</span>
+                                </div>
+                                <div class="indicator-bar-wrapper">
+                                    <div class="indicator-bar" id="skillMatchBar"></div>
+                                </div>
+                            </div>
+                            <div class="indicator-group">
+                                <div class="indicator-header">
+                                    <span>Semantic Context Match</span>
+                                    <span id="semanticMatchPercent">0%</span>
+                                </div>
+                                <div class="indicator-bar-wrapper">
+                                    <div class="indicator-bar" id="semanticMatchBar"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Details Card -->
+                        <div class="details-card glass-subpanel">
+                            <h3>Extracted Contact Details</h3>
+                            <ul class="contact-list">
+                                <li>
+                                    <i class="bx bx-envelope"></i>
+                                    <span class="contact-value" id="contactEmail">n/a</span>
+                                </li>
+                                <li>
+                                    <i class="bx bx-phone"></i>
+                                    <span class="contact-value" id="contactPhone">n/a</span>
+                                </li>
+                                <li>
+                                    <i class="bx bxl-linkedin-square"></i>
+                                    <a class="contact-link" id="contactLinkedin" href="#" target="_blank">Not Linked</a>
+                                </li>
+                                <li>
+                                    <i class="bx bxl-github"></i>
+                                    <a class="contact-link" id="contactGithub" href="#" target="_blank">Not Linked</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- SKILLS COMPARISON -->
+                    <div class="details-card glass-subpanel">
+                        <h3>Skills Gap Analysis</h3>
+                        <div class="skills-split">
+                            <div class="skills-column">
+                                <h4 class="found"><i class="bx bx-check-double"></i> Skills Found in Resume</h4>
+                                <div class="skills-tag-cloud" id="foundSkills">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                            <div class="skills-column">
+                                <h4 class="missing"><i class="bx bx-x-circle"></i> Missing Required Skills</h4>
+                                <div class="skills-tag-cloud" id="missingSkills">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EDUCATION & EXPERIENCE EXTRACTS -->
+                    <div class="results-grid-2">
+                        <div class="details-card glass-subpanel">
+                            <h3>Work Experience Highlights</h3>
+                            <ul class="highlights-list" id="experienceHighlights">
+                                <!-- Populated dynamically -->
+                            </ul>
+                        </div>
+                        <div class="details-card glass-subpanel">
+                            <h3>Education Credentials</h3>
+                            <ul class="highlights-list" id="educationHighlights">
+                                <!-- Populated dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- RECOMMENDATIONS / CRITIQUE -->
+                    <div class="details-card glass-subpanel recommendations-card">
+                        <h3><i class="bx bx-bulb"></i> AI Recommendations for Candidate Improvement</h3>
+                        <ul class="rec-list" id="recommendationsList">
+                            <!-- Populated dynamically -->
+                        </ul>
+                    </div>
+
+                </div>
+
+            </section>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
